@@ -19,7 +19,7 @@ std::string po_precision = "float"s;
 std::string po_image_format = "uint16"s;
 double po_sigma = 0.1;
 double po_rho = 1.0;
-double po_tau = 0.25;
+double po_tau = 0.05;
 std::size_t po_iters = 1;
 bool po_save_steps = false;
 bool po_quiet = false;
@@ -188,22 +188,53 @@ void process_image() {
 	// Run algorithm
 	i3d::Image3d<img_t> img(po_input_file.c_str());
 	i3d::Image3d<prec_t> work;
-	work.template ConvertFrom<prec_t, prec_t>(img);
+	work.template ConvertFrom<prec_t, img_t>(img);
 
 	for (std::size_t it = 1; it <= po_iters; ++it) {
 		print(fmt::format("Starting iteration {}", it));
-		for (std::size_t axis = 0; axis < 3; ++axis)
+		for (std::size_t axis = 0; axis < 3; ++axis) {
+			print(fmt::format("\tProcessing axis {}", axis));
 			for (std::size_t i = 0; i < img.GetSize()[axis]; ++i)
 				process_slice(work, i, axis);
+		}
+		if (po_save_steps && it != po_iters) {
+			fs::path new_path = po_output_file;
+			fs::path new_name = new_path.stem();
+			new_name += fmt::format("_f{:0>3}", it);
+			new_name += new_path.extension();
+			new_path.replace_filename(new_name);
+
+			print(fmt::format("Saving step: {}", new_path.c_str()));
+			img.template ConvertFrom<img_t, prec_t>(work);
+			img.SaveImage(new_path.c_str());
+		}
 	}
+
+	print(fmt::format("Saving result: {}", po_output_file.c_str()));
+	img.template ConvertFrom<img_t, prec_t>(work);
+	img.SaveImage(po_output_file.c_str());
 }
 
 int main(int argc, const char** argv) {
 	parse_args(argc, argv);
 
-	process_image<float, float>();
-
-	boost::asio::thread_pool tpool(po_threads);
-
-	tpool.join();
+	if (po_precision == "float") {
+		if (po_image_format == "uint8")
+			process_image<i3d::GRAY8, float>();
+		else if (po_image_format == "uint16")
+			process_image<i3d::GRAY16, float>();
+		else if (po_image_format == "float")
+			process_image<float, float>();
+		else if (po_image_format == "double")
+			process_image<double, float>();
+	} else if (po_precision == "double") {
+		if (po_image_format == "uint8")
+			process_image<i3d::GRAY8, double>();
+		else if (po_image_format == "uint16")
+			process_image<i3d::GRAY16, double>();
+		else if (po_image_format == "float")
+			process_image<float, double>();
+		else if (po_image_format == "double")
+			process_image<double, double>();
+	}
 }
