@@ -192,10 +192,18 @@ void process_image() {
 
 	for (std::size_t it = 1; it <= po_iters; ++it) {
 		print(fmt::format("Starting iteration {}", it));
+
 		for (std::size_t axis = 0; axis < 3; ++axis) {
+			boost::asio::thread_pool tpool(po_threads);
+
 			print(fmt::format("\tProcessing axis {}", axis));
+
 			for (std::size_t i = 0; i < img.GetSize()[axis]; ++i)
-				process_slice(work, i, axis);
+				boost::asio::post(tpool, [&work, i, axis]() {
+					process_slice(work, i, axis);
+				});
+
+			tpool.join();
 		}
 		if (po_save_steps && it != po_iters) {
 			fs::path new_path = po_output_file;
