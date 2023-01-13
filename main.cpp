@@ -22,6 +22,7 @@ double po_rho = 1.0;
 double po_tau = 0.25;
 std::size_t po_iters = 1;
 bool po_save_steps = false;
+bool po_quiet = false;
 fs::path po_input_file;
 fs::path po_output_file;
 
@@ -46,6 +47,8 @@ void parse_args(int argc, const char** argv) {
 	     "Maximum number of work threads to use ( 0 means 'all' )") // Threads
 	    ("save_steps",
 	     "Save intermediate steps ( e.g. name_f20.tif for frame 20 )") // Save
+	    ("quiet",
+	     "Disable standard output") // Quiet
 	    ("precision", po::value(&po_precision)->default_value(po_precision),
 	     "Precision for computation {float, double}") // Precision
 
@@ -106,20 +109,93 @@ void parse_args(int argc, const char** argv) {
 	if (vm.contains("save_steps"))
 		po_save_steps = true;
 
+	if (vm.contains("quiet"))
+		po_quiet = true;
+
 	if (po_threads == 0)
 		po_threads = std::thread::hardware_concurrency();
 }
 
+void print(const std::string& s) {
+	if (!po_quiet)
+		std::cout << s << '\n';
+}
+
+template <typename img_t>
+i3d::Image3d<img_t>
+get_slice(const i3d::Image3d<img_t>& img, std::size_t idx, std::size_t axis) {
+	i3d::Image3d<img_t> out;
+
+	switch (axis) {
+	case 0:
+		img.GetSliceX(out, idx);
+		break;
+	case 1:
+		img.GetSliceY(out, idx);
+		break;
+	case 2:
+		img.GetSliceZ(out, idx);
+		break;
+	default:
+		throw std::out_of_range("Axis out of range");
+	}
+
+	return out;
+}
+
+template <typename img_t>
+void set_slice(i3d::Image3d<img_t>& dest,
+               const i3d::Image3d<img_t>& slice,
+               std::size_t idx,
+               std::size_t axis) {
+	switch (axis) {
+	case 0:
+		dest.SetSliceX(slice, idx);
+		break;
+	case 1:
+		dest.SetSliceY(slice, idx);
+		break;
+	case 2:
+		dest.SetSliceZ(slice, idx);
+		break;
+	default:
+		throw std::out_of_range("Axis out of range");
+	}
+}
+
+template <typename prec_t>
+void process_slice(i3d::Image3d<prec_t>& img,
+                   std::size_t idx,
+                   std::size_t axis) {
+	auto slice = get_slice(img, idx, axis);
+	i3d::CED_AOS(slice, prec_t(po_sigma), prec_t(po_rho), prec_t(po_tau), 1ul);
+	set_slice(img, slice, idx, axis);
+}
+
 template <typename img_t, typename prec_t>
 void process_image() {
-	fmt::print("Running algorithm, options:\n");
-	fmt::print("\tThreads: {}\n\tPrecision: {}\n\tSigma: {}\n\tRho: {}\n\tTau: "
-	           "{}\n\tIters: {}\n",
-	           po_threads, po_precision, po_sigma, po_rho, po_tau, po_iters);
-	if (po_save_steps)
-		fmt::print("Saving intermediate images");
+	if (!po_quiet) {
+		// Print argument info
+		print("Running algorithm, options:");
+		print(fmt::format(
+		    "\tThreads: {}\n\tPrecision: {}\n\tSigma: {}\n\tRho: {}\n\tTau: "
+		    "{}\n\tIters: {}",
+		    po_threads, po_precision, po_sigma, po_rho, po_tau, po_iters));
+		if (po_save_steps)
+			print("Saving intermediate images");
+	}
 
+	// Run algorithm
 	i3d::Image3d<img_t> img(po_input_file.c_str());
+	i3d::Image3d<prec_t> work;
+	work.template ConvertFrom<prec_t, prec_t>(img);
+
+	for (std::size_t it = 1; it <= po_iters; ++it) {
+		print(fmt::format("Starting iteration {}", it));
+		for (std::size_t axis = 0; axis < 3; ++axis)
+			for (std::size_t i = 0; i < img.GetSize()[axis]; ++i)
+				process_slice(work, i, axis);
+	}
 }
 
 int main(int argc, const char** argv) {
