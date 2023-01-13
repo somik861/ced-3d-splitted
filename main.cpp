@@ -21,7 +21,7 @@ double po_sigma = 0.1;
 double po_rho = 1.0;
 double po_tau = 0.05;
 std::size_t po_iters = 1;
-bool po_save_steps = false;
+std::size_t po_save_every = 0;
 bool po_quiet = false;
 fs::path po_input_file;
 fs::path po_output_file;
@@ -42,11 +42,11 @@ void parse_args(int argc, const char** argv) {
 	     "Time step of one iteration.") // Tau
 	    ("iters,i", po::value(&po_iters)->default_value(po_iters),
 	     "Number of iterations") // Iters
-	    ("max_threads",
-	     po::value<std::size_t>(&po_threads)->default_value(po_threads),
+	    ("max_threads", po::value(&po_threads)->default_value(po_threads),
 	     "Maximum number of work threads to use ( 0 means 'all' )") // Threads
-	    ("save_steps",
-	     "Save intermediate steps ( e.g. name_f20.tif for frame 20 )") // Save
+	    ("save_every", po::value(&po_save_every)->default_value(po_save_every),
+	     "Save every xth iteration ( e.g. name_f20.tif for frame 20 ), 0 means "
+	     "do not save anything") // Save
 	    ("quiet",
 	     "Disable standard output") // Quiet
 	    ("precision", po::value(&po_precision)->default_value(po_precision),
@@ -105,9 +105,6 @@ void parse_args(int argc, const char** argv) {
 		std::cerr << "Invalid image format choice" << std::endl;
 		std::terminate();
 	}
-
-	if (vm.contains("save_steps"))
-		po_save_steps = true;
 
 	if (vm.contains("quiet"))
 		po_quiet = true;
@@ -174,16 +171,12 @@ void process_slice(i3d::Image3d<prec_t>& img,
 
 template <typename img_t, typename prec_t>
 void process_image() {
-	if (!po_quiet) {
-		// Print argument info
-		print("Running algorithm, options:");
-		print(fmt::format(
-		    "\tThreads: {}\n\tPrecision: {}\n\tSigma: {}\n\tRho: {}\n\tTau: "
-		    "{}\n\tIters: {}",
-		    po_threads, po_precision, po_sigma, po_rho, po_tau, po_iters));
-		if (po_save_steps)
-			print("Saving intermediate images");
-	}
+	// Print argument info
+	print("Running algorithm, options:");
+	print(fmt::format(
+	    "\tThreads: {}\n\tPrecision: {}\n\tSigma: {}\n\tRho: {}\n\tTau: "
+	    "{}\n\tIters: {}",
+	    po_threads, po_precision, po_sigma, po_rho, po_tau, po_iters));
 
 	// Run algorithm
 	i3d::Image3d<img_t> img(po_input_file.c_str());
@@ -205,14 +198,14 @@ void process_image() {
 
 			tpool.join();
 		}
-		if (po_save_steps && it != po_iters) {
+		if (po_save_every != 0 && it % po_save_every == 0 && it != po_iters) {
 			fs::path new_path = po_output_file;
 			fs::path new_name = new_path.stem();
-			new_name += fmt::format("_f{:0>3}", it);
+			new_name += fmt::format("_f{:0>5}", it);
 			new_name += new_path.extension();
 			new_path.replace_filename(new_name);
 
-			print(fmt::format("Saving step: {}", new_path.c_str()));
+			print(fmt::format("Saving iteration: {}", new_path.c_str()));
 			img.template ConvertFrom<img_t, prec_t>(work);
 			img.SaveImage(new_path.c_str());
 		}
