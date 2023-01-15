@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 20)
 if(WIN32)
   include_directories(${CMAKE_BINARY_DIR}/include)
   link_directories(${CMAKE_BINARY_DIR}/lib)
-  set(VCPKG_LIBRARY_LINKAGE static)
-  set(VCPKG_HOST_TRIPLET x64-windows-static)
 endif(WIN32)
 
 project(ced3dsplit)
