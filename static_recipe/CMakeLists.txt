@@ -8,9 +8,9 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 # For location i3dlib
-if (WIN32)
-include_directories(${CMAKE_BINARY_DIR}/include)
-link_directories(${CMAKE_BINARY_DIR}/lib)
+if(WIN32)
+  include_directories(${CMAKE_BINARY_DIR}/include)
+  link_directories(${CMAKE_BINARY_DIR}/lib)
 endif(WIN32)
 
 add_executable(ced_3d_splitted ../main.cpp)
@@ -24,11 +24,12 @@ set(VCPKG_LIBS ${VCPKG_LIBS} libics)
 find_package(RXSpencer CONFIG REQUIRED)
 set(VCPKG_LIBS ${VCPKG_LIBS} rxspencer)
 
-SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
-find_library(I3DCORE i3dcore REQUIRED)
-find_library(I3DALGO i3dalgo REQUIRED)
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
+find_library(I3DCORE i3dcore)
+find_library(I3DALGO i3dalgo)
 
 message("Found i3dcore: ${I3DCORE}")
 message("Found i3dalgo: ${I3DALGO}")
 
-target_link_libraries(ced_3d_splitted ${I3DALGO} ${I3DCORE} ${VCPKG_LIBS} ${CONAN_LIBS})
+target_link_libraries(ced_3d_splitted ${I3DALGO} ${I3DCORE} ${VCPKG_LIBS}
+                      ${CONAN_LIBS})
