@@ -18,5 +18,11 @@ set(VCPKG_LIBS ${VCPKG_LIBS} libics)
 find_package(RXSpencer CONFIG REQUIRED)
 set(VCPKG_LIBS ${VCPKG_LIBS} rxspencer)
 
-target_link_libraries(ced_3d_splitted ${VCPKG_LIBS} ${CONAN_LIBS} libi3dcore.a
-                      libi3dalgo.a)
+SET(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
+find_library(I3DCORE i3dcore REQUIRED)
+find_library(I3DALGO i3dalgo REQUIRED)
+
+message("Found i3dcore: ${I3DCORE}")
+message("Found i3dalgo: ${I3DALGO}")
+
+target_link_libraries(ced_3d_splitted ${I3DALGO} ${I3DCORE} ${VCPKG_LIBS} ${CONAN_LIBS})
