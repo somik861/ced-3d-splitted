@@ -2,8 +2,28 @@
     "name": "ced-3d-static",
     "version-string": "0.0.1",
     "dependencies": [
+        "openblas",
         "clapack",
+        "hdf5",
+        "tiff",
+        "libjpeg-turbo",
+        "zlib",
+        "libpng",
         "libics",
-        "rxspencer"
+        "rxspencer",
+        {
+            "name":"dcmtk",
+            "platform":"windows"
+        },
+        {
+            "name": "fftw3",
+            "features": [
+                "threads"
+            ]
+        },
+        "fmt",
+        "boost-asio",
+        "boost-bind",
+        "boost-program-options"
     ]
 }
