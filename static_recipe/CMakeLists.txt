@@ -7,6 +7,12 @@ project(ced3dsplit)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
+# For location i3dlib
+if (WIN32)
+include_directories(${CMAKE_BINARY_DIR}/include)
+link_directories(${CMAKE_BINARY_DIR}/lib)
+endif(WIN32)
+
 add_executable(ced_3d_splitted ../main.cpp)
 
 find_package(clapack CONFIG REQUIRED)
