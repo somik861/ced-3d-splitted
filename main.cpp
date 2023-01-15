@@ -2,7 +2,6 @@
 #include <boost/bind/bind.hpp>
 #include <boost/program_options.hpp>
 #include <chrono>
-#include <filesystem>
 #include <fmt/core.h>
 #include <i3d/diffusion_filters.h>
 #include <iostream>
@@ -11,7 +10,6 @@
 
 using namespace std::literals;
 namespace po = boost::program_options;
-namespace fs = std::filesystem;
 
 // program options (constants after 'parse_args' is called)
 std::size_t po_threads = std::thread::hardware_concurrency() / 2;
@@ -23,8 +21,8 @@ double po_tau = 0.05;
 std::size_t po_iters = 1;
 std::size_t po_save_every = 0;
 bool po_quiet = false;
-fs::path po_input_file;
-fs::path po_output_file;
+std::string po_input_file;
+std::string po_output_file;
 
 void parse_args(int argc, const char** argv) {
 	po::options_description desc("Options");
@@ -199,11 +197,16 @@ void process_image() {
 			tpool.join();
 		}
 		if (po_save_every != 0 && it % po_save_every == 0 && it != po_iters) {
-			fs::path new_path = po_output_file;
-			fs::path new_name = new_path.stem();
-			new_name += fmt::format("_f{:0>5}", it);
-			new_name += new_path.extension();
-			new_path.replace_filename(new_name);
+			std::string new_path = po_output_file;
+			std::string extension = new_path.substr(new_path.rfind('.'));
+			
+			// Remove extension
+			for (std::size_t n = 0; n < extension.size(); ++n)
+				new_path.pop_back();
+
+			
+			new_path += fmt::format("_f{:0>5}", it);
+			new_path += extension;
 
 			print(fmt::format("Saving iteration: {}", new_path.c_str()));
 			img.template ConvertFrom<img_t, prec_t>(work);
