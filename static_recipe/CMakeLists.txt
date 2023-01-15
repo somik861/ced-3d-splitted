@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
 
-project(ced3dsplit)
-
 # For location i3dlib
 if(WIN32)
   include_directories(${CMAKE_BINARY_DIR}/include)
   link_directories(${CMAKE_BINARY_DIR}/lib)
+  set(VCPKG_LIBRARY_LINKAGE static)
 endif(WIN32)
+
+project(ced3dsplit)
 
 add_executable(ced_3d_splitted ../main.cpp)
 
