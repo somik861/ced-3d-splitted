@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(ced2dsplit)
+project(ced3dsplit)
 
-set(CMAKE_CXX_STANDARD 20)
-add_definitions("-O3 -flto=3")
+set(CMAKE_CXX_STANDARD 17)
+
+if (WIN32)
+add_definitions("/02")
+else (WIN32)
+add_definitions("-O3")
+endif(WIN32)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()

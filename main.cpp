@@ -75,14 +75,14 @@ void parse_args(int argc, const char** argv) {
 	          vm);
 	po::notify(vm);
 
-	if (vm.contains("help")) {
+	if (vm.count("help")) {
 		std::cout << "Usage: ./program [options] input_file output_file\n";
 		std::cout << desc << '\n';
 		exit(0);
 	}
 
 	auto require_argument = [&](std::string name) {
-		if (!vm.contains(name)) {
+		if (!vm.count(name)) {
 			std::cerr << "Positional argument '" << name << "' is not set\n";
 			std::terminate();
 		}
@@ -104,7 +104,7 @@ void parse_args(int argc, const char** argv) {
 		std::terminate();
 	}
 
-	if (vm.contains("quiet"))
+	if (vm.count("quiet"))
 		po_quiet = true;
 
 	if (po_threads == 0)
