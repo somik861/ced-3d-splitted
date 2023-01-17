@@ -5,6 +5,7 @@
 #include <fmt/core.h>
 #include <i3d/diffusion_filters.h>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <thread>
 
@@ -167,6 +168,20 @@ void process_slice(i3d::Image3d<prec_t>& img,
 	set_slice(img, slice, idx, axis);
 }
 
+template <typename in_t, typename out_t>
+void copy(i3d::Image3d<out_t>& dest, const i3d::Image3d<in_t>& src) {
+	dest.MakeRoom(src.GetSize());
+	for (std::size_t x = 0; x < src.GetSizeX(); ++x)
+		for (std::size_t y = 0; y < src.GetSizeY(); ++y)
+			for (std::size_t z = 0; z < src.GetSizeZ(); ++z)
+				dest.SetVoxel(
+				    x, y, z,
+				    out_t(std::min<double>(
+				        std::max<double>(src.GetVoxel(x, y, z),
+				                       std::numeric_limits<out_t>::min()),
+				        std::numeric_limits<out_t>::max())));
+}
+
 template <typename img_t, typename prec_t>
 void process_image() {
 	// Print argument info
@@ -179,7 +194,7 @@ void process_image() {
 	// Run algorithm
 	i3d::Image3d<img_t> img(po_input_file.c_str());
 	i3d::Image3d<prec_t> work;
-	work.template ConvertFrom<prec_t, img_t>(img);
+	copy(work, img);
 
 	for (std::size_t it = 1; it <= po_iters; ++it) {
 		print(fmt::format("Starting iteration {}", it));
@@ -199,23 +214,22 @@ void process_image() {
 		if (po_save_every != 0 && it % po_save_every == 0 && it != po_iters) {
 			std::string new_path = po_output_file;
 			std::string extension = new_path.substr(new_path.rfind('.'));
-			
+
 			// Remove extension
 			for (std::size_t n = 0; n < extension.size(); ++n)
 				new_path.pop_back();
 
-			
 			new_path += fmt::format("_f{:0>5}", it);
 			new_path += extension;
 
 			print(fmt::format("Saving iteration: {}", new_path.c_str()));
-			img.template ConvertFrom<img_t, prec_t>(work);
+			copy(img, work);
 			img.SaveImage(new_path.c_str());
 		}
 	}
 
 	print(fmt::format("Saving result: {}", po_output_file.c_str()));
-	img.template ConvertFrom<img_t, prec_t>(work);
+	copy(img, work);
 	img.SaveImage(po_output_file.c_str());
 }
 
