@@ -16,7 +16,7 @@ namespace slices
 
         for (std::size_t i = start_idx; i < end_idx; ++i)
         {
-            assert(i < img.GetSliceX());
+            assert(i < img.GetSizeX());
             slices[i - start_idx].MakeRoom(slice_size);
         }
 
@@ -36,7 +36,7 @@ namespace slices
 
         for (std::size_t i = start_idx; i < end_idx; ++i)
         {
-            assert(i < img.GetSliceY());
+            assert(i < img.GetSizeY());
             slices[i - start_idx].MakeRoom(slice_size);
         }
 
@@ -56,7 +56,7 @@ namespace slices
 
         for (std::size_t i = start_idx; i < end_idx; ++i)
         {
-            assert(i < img.GetSliceZ());
+            assert(i < img.GetSizeZ());
             slices[i - start_idx].MakeRoom(slice_size);
         }
 
@@ -76,7 +76,7 @@ namespace slices
     {
         for (std::size_t i = start_idx; i < end_idx; ++i)
         {
-            assert(i < img.GetSliceX());
+            assert(i < img.GetSizeX());
         }
 
         for (std::size_t z = 0; z < img.GetSizeZ(); ++z)
@@ -93,7 +93,7 @@ namespace slices
     {
         for (std::size_t i = start_idx; i < end_idx; ++i)
         {
-            assert(i < img.GetSliceY());
+            assert(i < img.GetSizeY());
         }
 
         for (std::size_t z = 0; z < img.GetSizeZ(); ++z)
@@ -110,7 +110,7 @@ namespace slices
     {
         for (std::size_t i = start_idx; i < end_idx; ++i)
         {
-            assert(i < img.GetSliceZ());
+            assert(i < img.GetSizeZ());
         }
 
         for (std::size_t i = start_idx; i < end_idx; ++i)
