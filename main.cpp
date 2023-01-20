@@ -24,6 +24,9 @@ bool po_quiet = false;
 std::string po_input_file;
 std::string po_output_file;
 
+// make sure details are included after program opttions
+#include "details.hpp"
+
 void parse_args(int argc, const char **argv)
 {
 	po::options_description desc("Options");
@@ -117,66 +120,43 @@ void parse_args(int argc, const char **argv)
 		po_threads = std::thread::hardware_concurrency();
 }
 
-void print(const std::string &s)
-{
-	if (!po_quiet)
-		std::cout << s << '\n';
-}
-
 template <typename img_t>
-i3d::Image3d<img_t>
-get_slice(const i3d::Image3d<img_t> &img, std::size_t idx, std::size_t axis)
-{
-	i3d::Image3d<img_t> out;
-
-	switch (axis)
-	{
-	case 0:
-		img.GetSliceX(out, idx);
-		break;
-	case 1:
-		img.GetSliceY(out, idx);
-		break;
-	case 2:
-		img.GetSliceZ(out, idx);
-		break;
-	default:
-		throw std::out_of_range("Axis out of range");
-	}
-
-	return out;
-}
-
-template <typename img_t>
-void set_slice(i3d::Image3d<img_t> &dest,
-			   const i3d::Image3d<img_t> &slice,
-			   std::size_t idx,
-			   std::size_t axis)
+std::vector<i3d::Image3d<img_t>> get_slices(const i3d::Image3d<img_t> &img,
+											std::size_t start_idx,
+											std::size_t end_idx, std::size_t axis)
 {
 	switch (axis)
 	{
 	case 0:
-		dest.SetSliceX(slice, idx);
-		break;
+		return slices::get_X(img, start_idx, end_idx);
 	case 1:
-		dest.SetSliceY(slice, idx);
-		break;
+		return slices::get_Y(img, start_idx, end_idx);
 	case 2:
-		dest.SetSliceZ(slice, idx);
-		break;
-	default:
-		throw std::out_of_range("Axis out of range");
+		return slices::get_Z(img, start_idx, end_idx);
 	}
+
+	throw std::out_of_range("Axis out of range");
 }
 
-template <typename prec_t>
-void process_slice(i3d::Image3d<prec_t> &img,
-				   std::size_t idx,
-				   std::size_t axis)
+template <typename img_t>
+void set_slices(i3d::Image3d<img_t> &img,
+				const std::vector<i3d::Image3d<img_t>> &slices,
+				std::size_t start_idx, std::size_t end_idx, std::size_t axis)
 {
-	auto slice = get_slice(img, idx, axis);
-	i3d::CED_AOS(slice, prec_t(po_sigma), prec_t(po_rho), prec_t(po_tau), 1ul);
-	set_slice(img, slice, idx, axis);
+	switch (axis)
+	{
+	case 0:
+		slices::set_X(img, slices, start_idx, end_idx);
+		return;
+	case 1:
+		slices::set_Y(img, slices, start_idx, end_idx);
+		return;
+	case 2:
+		slices::set_Z(img, slices, start_idx, end_idx);
+		return;
+	}
+
+	throw std::out_of_range("Axis out of range");
 }
 
 template <typename in_t, typename out_t>
@@ -219,9 +199,12 @@ void process_image()
 	auto worker = [&work](std::size_t id, std::size_t axis, std::size_t thread_count)
 	{
 		auto [start, end] = get_job_range(id, thread_count, work.GetSize()[axis]);
+		auto slices = get_slices(work, start, end, axis);
 
-		for (std::size_t i = start; i < end; ++i)
-			process_slice(work, i, axis);
+		for (auto &slice : slices)
+			i3d::CED_AOS(slice, prec_t(po_sigma), prec_t(po_rho), prec_t(po_tau), 1ul);
+
+		set_slices(work, slices, start, end, axis);
 	};
 
 	for (std::size_t it = 1; it <= po_iters; ++it)
