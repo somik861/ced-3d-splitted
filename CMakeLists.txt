@@ -25,5 +25,5 @@ endif(WIN32)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-add_executable(main main.cpp)
-target_link_libraries(main ${CONAN_LIBS} ${I3D_LIBS})
+add_executable(ced3dsplit main.cpp)
+target_link_libraries(ced3dsplit ${CONAN_LIBS} ${I3D_LIBS})

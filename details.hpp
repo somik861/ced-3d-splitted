@@ -23,7 +23,7 @@ namespace slices
         for (std::size_t z = 0; z < img.GetSizeZ(); ++z)
             for (std::size_t y = 0; y < img.GetSizeY(); ++y)
                 for (std::size_t i = start_idx; i < end_idx; ++i)
-                    slices[i - start_idx].SetVoxel(y, z, 1, img.GetVoxel(i, y, z));
+                    slices[i - start_idx].SetVoxel(y, z, 0, img.GetVoxel(i, y, z));
 
         return slices;
     }
@@ -43,7 +43,7 @@ namespace slices
         for (std::size_t z = 0; z < img.GetSizeZ(); ++z)
             for (std::size_t i = start_idx; i < end_idx; ++i)
                 for (std::size_t x = 0; x < img.GetSizeX(); ++x)
-                    slices[i - start_idx].SetVoxel(x, z, 1, img.GetVoxel(x, i, z));
+                    slices[i - start_idx].SetVoxel(x, z, 0, img.GetVoxel(x, i, z));
 
         return slices;
     }
@@ -63,7 +63,7 @@ namespace slices
         for (std::size_t i = start_idx; i < end_idx; ++i)
             for (std::size_t y = 0; y < img.GetSizeY(); ++y)
                 for (std::size_t x = 0; x < img.GetSizeX(); ++x)
-                    slices[i - start_idx].SetVoxel(x, y, 1, img.GetVoxel(x, y, i));
+                    slices[i - start_idx].SetVoxel(x, y, 0, img.GetVoxel(x, y, i));
 
         return slices;
     }
@@ -82,7 +82,7 @@ namespace slices
         for (std::size_t z = 0; z < img.GetSizeZ(); ++z)
             for (std::size_t y = 0; y < img.GetSizeY(); ++y)
                 for (std::size_t i = start_idx; i < end_idx; ++i)
-                    img.SetVoxel(i, y, z, slices[i - start_idx].GetVoxel(y, z, 1));
+                    img.SetVoxel(i, y, z, slices[i - start_idx].GetVoxel(y, z, 0));
     }
 
     template <typename img_t>
@@ -99,7 +99,7 @@ namespace slices
         for (std::size_t z = 0; z < img.GetSizeZ(); ++z)
             for (std::size_t i = start_idx; i < end_idx; ++i)
                 for (std::size_t x = 0; x < img.GetSizeX(); ++x)
-                    img.SetVoxel(x, i, z, slices[i - start_idx].GetVoxel(x, z, 1));
+                    img.SetVoxel(x, i, z, slices[i - start_idx].GetVoxel(x, z, 0));
     }
 
     template <typename img_t>
@@ -116,7 +116,7 @@ namespace slices
         for (std::size_t i = start_idx; i < end_idx; ++i)
             for (std::size_t y = 0; y < img.GetSizeY(); ++y)
                 for (std::size_t x = 0; x < img.GetSizeX(); ++x)
-                    img.SetVoxel(x, y, i, slices[i - start_idx].GetVoxel(x, y, 1));
+                    img.SetVoxel(x, y, i, slices[i - start_idx].GetVoxel(x, y, 0));
     }
 
 }
