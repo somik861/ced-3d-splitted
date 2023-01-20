@@ -220,7 +220,7 @@ void process_image()
 	{
 		auto [start, end] = get_job_range(id, thread_count, work.GetSize()[axis]);
 
-		for (std::size_t i = start; i < end; ++start)
+		for (std::size_t i = start; i < end; ++i)
 			process_slice(work, i, axis);
 	};
 
