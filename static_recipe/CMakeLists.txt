@@ -10,7 +10,7 @@ endif(WIN32)
 
 project(ced3dsplit)
 
-add_executable(ced_3d_splitted ../main.cpp)
+add_executable(ced3dsplit ../main.cpp)
 
 # I3D deps ===================
 
@@ -70,7 +70,6 @@ set(LIBS ${LIBS} Boost::boost Boost::program_options)
 find_package(fmt CONFIG REQUIRED)
 set(LIBS ${LIBS} fmt::fmt)
 
-
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 find_library(I3DCORE i3dcore)
 find_library(I3DALGO i3dalgo)
@@ -78,4 +77,4 @@ find_library(I3DALGO i3dalgo)
 message("Found i3dcore: ${I3DCORE}")
 message("Found i3dalgo: ${I3DALGO}")
 
-target_link_libraries(ced_3d_splitted ${I3DALGO} ${I3DCORE} ${LIBS})
+target_link_libraries(ced3dsplit ${I3DALGO} ${I3DCORE} ${LIBS})
